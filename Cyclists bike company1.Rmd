@@ -1,0 +1,147 @@
+---
+title: "Cyclists bike sharing company"
+author: "Saran B"
+date: "2023-10-14"
+output: html_document
+---
+
+## Setting up my environment
+Notes: Setting up my environment by loading 'tidyverse' and 'lubridate' packages.
+
+```{r loading packages}
+library(tidyverse)
+library(lubridate)
+```
+
+# uploading the datasets
+Note: Here we are taking about 6 months different months data.
+```{r loading dataset}
+feb <- read.csv("C:\\Users\\saran\\OneDrive\\Documents\\Data_analysts_Case_study\\Cyclistic_company\\202302-divvy-tripdata.csv")
+mar <- read.csv("C:\\Users\\saran\\OneDrive\\Documents\\Data_analysts_Case_study\\Cyclistic_company\\202303-divvy-tripdata.csv")
+apr <- read.csv("C:\\Users\\saran\\OneDrive\\Documents\\Data_analysts_Case_study\\Cyclistic_company\\202304-divvy-tripdata.csv")
+may <- read.csv("C:\\Users\\saran\\OneDrive\\Documents\\Data_analysts_Case_study\\Cyclistic_company\\202305-divvy-tripdata.csv")
+jun <- read.csv("C:\\Users\\saran\\OneDrive\\Documents\\Data_analysts_Case_study\\Cyclistic_company\\202306-divvy-tripdata.csv")
+jul <- read.csv("C:\\Users\\saran\\OneDrive\\Documents\\Data_analysts_Case_study\\Cyclistic_company\\202307-divvy-tripdata.csv")
+```
+# checking whether all the columns in the different tables are same before combining into one
+```{r}
+colnames(feb)
+colnames(mar)
+colnames(apr)
+colnames(may)
+colnames(jun)
+colnames(jul)
+```
+# Checking the structure
+```{r}
+str(feb)
+str(mar)
+str(apr)
+str(may)
+str(jun)
+str(jul)
+```
+
+# Combining 6 month of data into a single data
+```{r}
+ride <- rbind(feb,mar,apr,may,jun,jul)
+```
+
+# Inspecting the new table
+```{r}
+colnames(ride) #checking the column names
+nrow(ride) # checking how many rows are there
+dim(ride) # checking the dimensions
+str(ride) # Checking the columns datatypes
+summary(ride) # Statistical summary of the data
+head(ride) # checking first 6 data
+tail(ride) # checking last 6 data
+```
+
+# inserting NA to the blank cells
+```{r}
+ride[ride == ""] <- NA
+```
+
+# calculating the number of NA values in each columns
+```{r}
+colSums(is.na(ride))
+```
+# calculating the number of duplicated values
+```{r}
+sum(duplicated(ride$ride_id))
+```
+# calculating the number of unique values
+```{r}
+length(unique(ride$ride_id))
+```
+#omiting the NA values in the dataset
+```{r}
+ride_v2 <- na.omit(ride)
+```
+#checking whether there us still null values in the dataset
+```{r}
+colSums(is.na(ride_v2))
+```
+# converting datatype of  started_at and ended_at to date time format
+```{r}
+ride_v2$started_at <- lubridate::as_datetime(ride_v2$started_at)
+ride_v2$ended_at <- lubridate::as_datetime(ride_v2$ended_at)
+```
+# checking whether th datatype is changed
+```{r}
+class(ride_v2$started_at)
+class(ride_v2$ended_at)
+```
+# creating a new column for hour 
+```{r}
+ride_v2$start_hr <- lubridate :: hour(ride_v2$started_at)
+ride_v2$end_hr <- lubridate :: hour(ride_v2$ended_at)
+```
+# creating a new column for just date
+```{r}
+ride_v2$start_date <- lubridate :: date(ride_v2$started_at)
+ride_v2$end_date <- lubridate :: date(ride_v2$ended_at)
+```
+# calculating the difference in time for ride length 
+```{r}
+ride_v2$ride_length <- difftime(ride_v2$ended_at,ride_v2$started_at)
+ride_v2$ride_length <- as.numeric(ride_v2$ride_length)
+```
+# calculating the difference in time for ride length in hours
+```{r}
+ride_v2$ride_length_hr <- difftime(ride_v2$ended_at,ride_v2$started_at,units = c("hours"))
+ride_v2$ride_length_hr <- as.numeric(ride_v2$ride_length_hr)
+```
+# converting the dateyear format to weekday
+```{r}
+ride_v2$start_day <- wday(ride_v2$start_date,label = TRUE)
+ride_v2$end_day <- wday(ride_v2$start_date,label = TRUE)
+```
+# checking the datatype and structure
+```{r}
+str(ride_v2)
+```
+#Excluding the stationname 'Hq Qr' and ridelength less than or equal to 1
+```{r}
+ride_v3 <- ride_v2[!(ride_v2$start_station_name == "HQ QR"|ride_v2$ride_length <=1),]
+```
+# checking the dimension of the newly created dataset
+```{r}
+dim(ride_v3)
+```
+# conforming there is no null values in the newly created dataset
+```{r}
+colSums(is.na(ride_v3))
+```
+# Taking a summary of the dataset
+```{r}
+summary(ride_v3)
+```
+# exporting the end result as Csv file to work on Visualization in Tableau
+```{r}
+write.csv(ride_v3,"cyclist_bike_company.csv",row.names = FALSE)
+```
+
+ 
+
